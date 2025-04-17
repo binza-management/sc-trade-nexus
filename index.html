@@ -45,9 +45,83 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .mobile-menu.open {
+            max-height: 500px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.open {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #1e293b;
+            border-radius: 0.5rem;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="mobile-menu md:hidden bg-gray-800">
+        <div class="container mx-auto px-4 py-4">
+            <nav class="flex flex-col space-y-4">
+                <a href="#route-finder" class="hover:text-blue-400 transition">Routes</a>
+                <a href="#commodities" class="hover:text-blue-400 transition">Commodities</a>
+                <a href="#mining" class="hover:text-blue-400 transition">Mining</a>
+                <a href="#fleet" class="hover:text-blue-400 transition">Fleet</a>
+                <a href="#api" class="hover:text-blue-400 transition">API</a>
+                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-astronaut mr-2"></i> Sign In
+                </button>
+            </nav>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="gradient-bg py-6 shadow-xl sticky top-0 z-50">
         <div class="container mx-auto px-4">
@@ -68,7 +142,7 @@
                         <i class="fas fa-user-astronaut mr-2"></i> Sign In
                     </button>
                 </nav>
-                <button class="md:hidden text-xl">
+                <button id="menu-toggle" class="md:hidden text-xl">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -87,10 +161,10 @@
                         Real-time commodity prices, optimized trade routes, mining analytics, and fleet management - all in one platform.
                     </p>
                     <div class="flex space-x-4">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105">
+                        <button id="start-trading-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105">
                             Start Trading <i class="fas fa-arrow-right ml-2"></i>
                         </button>
-                        <button class="border border-blue-400 text-blue-400 hover:bg-blue-900 px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                        <button id="watch-demo-btn" class="border border-blue-400 text-blue-400 hover:bg-blue-900 px-6 py-3 rounded-lg font-semibold transition flex items-center">
                             <i class="fas fa-play-circle mr-2"></i> Watch Demo
                         </button>
                     </div>
@@ -193,40 +267,40 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Origin</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Select Origin</option>
-                            <option>Stanton System</option>
-                            <option>Crusader</option>
-                            <option>MicroTech</option>
-                            <option>ArcCorp</option>
+                        <select id="origin-select" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Origin</option>
+                            <option value="stanton">Stanton System</option>
+                            <option value="crusader">Crusader</option>
+                            <option value="microtech">MicroTech</option>
+                            <option value="arccorp">ArcCorp</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Destination</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Any Destination</option>
-                            <option>Port Olisar</option>
-                            <option>Area18</option>
-                            <option>Lorville</option>
+                        <select id="destination-select" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Any Destination</option>
+                            <option value="olisar">Port Olisar</option>
+                            <option value="area18">Area18</option>
+                            <option value="lorville">Lorville</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Commodity</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>All Commodities</option>
-                            <option>Agricultural Supplies</option>
-                            <option>Processed Food</option>
-                            <option>Stims</option>
-                            <option>Illegal Goods</option>
+                        <select id="commodity-select" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Commodities</option>
+                            <option value="agricultural">Agricultural Supplies</option>
+                            <option value="food">Processed Food</option>
+                            <option value="stims">Stims</option>
+                            <option value="illegal">Illegal Goods</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Ship</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>All Ships</option>
-                            <option>Caterpillar (576 SCU)</option>
-                            <option>Freelancer MAX (122 SCU)</option>
-                            <option>Cutlass Black (46 SCU)</option>
+                        <select id="ship-select" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Ships</option>
+                            <option value="caterpillar">Caterpillar (576 SCU)</option>
+                            <option value="freelancer">Freelancer MAX (122 SCU)</option>
+                            <option value="cutlass">Cutlass Black (46 SCU)</option>
                         </select>
                     </div>
                 </div>
@@ -235,25 +309,25 @@
                         <label class="block text-sm text-gray-400 mb-1">Filters</label>
                         <div class="flex flex-wrap gap-2">
                             <label class="inline-flex items-center">
-                                <input type="checkbox" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500" checked>
+                                <input type="checkbox" id="legal-goods" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500" checked>
                                 <span class="ml-2 text-sm">Legal Goods</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="checkbox" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500">
+                                <input type="checkbox" id="illegal-goods" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500">
                                 <span class="ml-2 text-sm">Illegal Goods</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="checkbox" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500" checked>
+                                <input type="checkbox" id="high-profit" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500" checked>
                                 <span class="ml-2 text-sm">High Profit</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="checkbox" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500">
+                                <input type="checkbox" id="short-distance" class="form-checkbox bg-gray-800 border-gray-700 text-blue-500">
                                 <span class="ml-2 text-sm">Short Distance</span>
                             </label>
                         </div>
                     </div>
                     <div class="flex items-end justify-end">
-                        <button class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center">
+                        <button id="calculate-routes" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center">
                             <i class="fas fa-route mr-2"></i> Calculate Routes
                         </button>
                     </div>
@@ -417,28 +491,28 @@
             <h2 class="text-3xl font-bold mb-8">
                 <span class="border-b-4 border-blue-500 pb-1">Commodities Market</span>
             </h2>
-            
+
             <div class="dark-card rounded-xl p-6 mb-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                     <div class="mb-4 md:mb-0">
                         <div class="relative">
-                            <input type="text" placeholder="Search commodities..." class="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" id="commodity-search" placeholder="Search commodities..." class="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <i class="fas fa-search absolute left-3 top-3 text-gray-500"></i>
                         </div>
                     </div>
                     <div class="flex space-x-2">
-                        <button class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition">
+                        <button id="commodity-categories" class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition">
                             <i class="fas fa-filter mr-1"></i> Categories
                         </button>
-                        <button class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition">
+                        <button id="commodity-sort" class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition">
                             <i class="fas fa-sort-amount-down mr-1"></i> Sort
                         </button>
-                        <button class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
+                        <button id="refresh-data" class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
                             <i class="fas fa-sync-alt mr-1"></i> Refresh Data
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="overflow-x-auto scrollbar-hide">
                     <table class="w-full">
                         <thead>
@@ -576,13 +650,13 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div class="mt-6 pt-4 border-t border-gray-700 flex justify-between">
                     <span class="text-gray-400">Showing 4 of 42 commodities</span>
                     <a href="#" class="text-blue-400 hover:underline">View All Commodities</a>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="dark-card rounded-xl p-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center">
@@ -650,7 +724,7 @@
             <h2 class="text-3xl font-bold mb-8">
                 <span class="border-b-4 border-blue-500 pb-1">Mining & Refining Tools</span>
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="dark-card rounded-xl p-6">
                     <div class="flex justify-between items-start mb-4">
@@ -695,7 +769,7 @@
                         <i class="fas fa-map-marked-alt mr-1"></i> View All Locations
                     </a>
                 </div>
-                
+
                 <div class="dark-card rounded-xl p-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center">
                         <i class="fas fa-industry text-purple-400 mr-2"></i> Refinery Calculator
@@ -703,42 +777,42 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm text-gray-400 mb-1">Ore Type</label>
-                            <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Quantanium</option>
-                                <option>Hadenite</option>
-                                <option>Agricium</option>
-                                <option>Bexalite</option>
+                            <select id="ore-type" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="quantanium">Quantanium</option>
+                                <option value="hadenite">Hadenite</option>
+                                <option value="agricium">Agricium</option>
+                                <option value="bexalite">Bexalite</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm text-gray-400 mb-1">Quantity (SCU)</label>
-                            <input type="number" value="32" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="number" id="ore-quantity" value="32" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="block text-sm text-gray-400 mb-1">Refinery Method</label>
-                            <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Ferron Exchange (Fast)</option>
-                                <option>Pyrometric (Balanced)</option>
-                                <option>Dinyx Solventation (High Yield)</option>
+                            <select id="refinery-method" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="ferron">Ferron Exchange (Fast)</option>
+                                <option value="pyrometric">Pyrometric (Balanced)</option>
+                                <option value="dinyx">Dinyx Solventation (High Yield)</option>
                             </select>
                         </div>
                         <div class="pt-2 border-t border-gray-700">
                             <div class="flex justify-between">
                                 <span>Estimated Yield:</span>
-                                <span class="font-bold text-green-400">28.4 SCU</span>
+                                <span id="estimated-yield" class="font-bold text-green-400">28.4 SCU</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Time Required:</span>
-                                <span class="font-bold">4h 22m</span>
+                                <span id="refining-time" class="font-bold">4h 22m</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Estimated Value:</span>
-                                <span class="font-bold text-xl text-blue-400">42,780 aUEC</span>
+                                <span id="estimated-value" class="font-bold text-xl text-blue-400">42,780 aUEC</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="dark-card rounded-xl p-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center">
                         <i class="fas fa-chart-pie text-blue-400 mr-2"></i> Mining Profitability
@@ -766,66 +840,66 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="dark-card rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold">Mining Loadout Optimizer</h3>
                     <div class="flex space-x-2">
-                        <button class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition">
+                        <button id="save-loadout" class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition">
                             <i class="fas fa-save mr-1"></i> Save
                         </button>
-                        <button class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
+                        <button id="share-loadout" class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
                             <i class="fas fa-share-alt mr-1"></i> Share
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Mining Ship</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Prospector</option>
-                            <option>Mole</option>
-                            <option>Orion</option>
+                        <select id="mining-ship" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="prospector">Prospector</option>
+                            <option value="mole">Mole</option>
+                            <option value="orion">Orion</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Laser Head</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Hofstede-S1</option>
-                            <option>Klein-S1</option>
-                            <option>Impact-S1</option>
+                        <select id="laser-head" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="hofstede">Hofstede-S1</option>
+                            <option value="klein">Klein-S1</option>
+                            <option value="impact">Impact-S1</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-gray-400 mb-1">Modules</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Optimal Scanning</option>
-                            <option>Balanced</option>
-                            <option>Maximum Yield</option>
+                        <select id="mining-modules" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="scanning">Optimal Scanning</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="yield">Maximum Yield</option>
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="dark-card p-4 rounded-lg">
                         <div class="text-gray-400 text-sm mb-1">Optimal Charge</div>
-                        <div class="text-xl font-bold text-green-400">72%</div>
+                        <div id="optimal-charge" class="text-xl font-bold text-green-400">72%</div>
                     </div>
                     <div class="dark-card p-4 rounded-lg">
                         <div class="text-gray-400 text-sm mb-1">Fracture Speed</div>
-                        <div class="text-xl font-bold">1.8x</div>
+                        <div id="fracture-speed" class="text-xl font-bold">1.8x</div>
                     </div>
                     <div class="dark-card p-4 rounded-lg">
                         <div class="text-gray-400 text-sm mb-1">Resistance</div>
-                        <div class="text-xl font-bold">64%</div>
+                        <div id="resistance" class="text-xl font-bold">64%</div>
                     </div>
                     <div class="dark-card p-4 rounded-lg">
                         <div class="text-gray-400 text-sm mb-1">Instability</div>
-                        <div class="text-xl font-bold text-red-400">High</div>
+                        <div id="instability" class="text-xl font-bold text-red-400">High</div>
                     </div>
                 </div>
-                
+
                 <div class="mt-6 pt-4 border-t border-gray-700">
                     <h4 class="font-bold mb-3">Recommended Mining Locations</h4>
                     <div class="flex flex-wrap gap-2">
@@ -843,15 +917,15 @@
             <h2 class="text-3xl font-bold mb-8">
                 <span class="border-b-4 border-blue-500 pb-1">Fleet Management</span>
             </h2>
-            
+
             <div class="dark-card rounded-xl p-6 mb-8">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold">Your Hangar</h3>
-                    <button class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
+                    <button id="add-ship" class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
                         <i class="fas fa-plus-circle mr-1"></i> Add Ship
                     </button>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="dark-card p-4 rounded-lg border border-blue-900">
                         <div class="flex justify-between items-start mb-2">
@@ -881,7 +955,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dark-card p-4 rounded-lg">
                         <div class="flex justify-between items-start mb-2">
                             <div>
@@ -910,7 +984,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dark-card p-4 rounded-lg">
                         <div class="flex justify-between items-start mb-2">
                             <div>
@@ -940,7 +1014,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mt-6 pt-4 border-t border-gray-700">
                     <h4 class="font-bold mb-3">Active Ship: Drake Caterpillar</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1005,54 +1079,54 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="dark-card rounded-xl p-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center">
                         <i class="fas fa-ship text-blue-400 mr-2 ship-icon"></i> Ship Comparison
                     </h3>
                     <div class="flex justify-between mb-4">
-                        <select class="w-5/12 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Drake Caterpillar</option>
-                            <option>MISC Hull C</option>
-                            <option>Freelancer MAX</option>
+                        <select id="ship-compare-1" class="w-5/12 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="caterpillar">Drake Caterpillar</option>
+                            <option value="hullc">MISC Hull C</option>
+                            <option value="freelancer">Freelancer MAX</option>
                         </select>
                         <div class="flex items-center justify-center w-2/12 text-gray-500">
                             vs
                         </div>
-                        <select class="w-5/12 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>MISC Hull C</option>
-                            <option>Drake Caterpillar</option>
-                            <option>Freelancer MAX</option>
+                        <select id="ship-compare-2" class="w-5/12 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="hullc">MISC Hull C</option>
+                            <option value="caterpillar">Drake Caterpillar</option>
+                            <option value="freelancer">Freelancer MAX</option>
                         </select>
                     </div>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <span class="text-gray-400">Cargo Capacity:</span>
                             <div class="flex space-x-8">
-                                <span class="font-bold">576 SCU</span>
-                                <span class="font-bold">4,608 SCU</span>
+                                <span id="compare-capacity-1" class="font-bold">576 SCU</span>
+                                <span id="compare-capacity-2" class="font-bold">4,608 SCU</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-400">Quantum Speed:</span>
                             <div class="flex space-x-8">
-                                <span class="font-bold">0.21g</span>
-                                <span class="font-bold">0.15g</span>
+                                <span id="compare-speed-1" class="font-bold">0.21g</span>
+                                <span id="compare-speed-2" class="font-bold">0.15g</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-400">Shield HP:</span>
                             <div class="flex space-x-8">
-                                <span class="font-bold">42,000</span>
-                                <span class="font-bold">68,000</span>
+                                <span id="compare-shield-1" class="font-bold">42,000</span>
+                                <span id="compare-shield-2" class="font-bold">68,000</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-400">Crew:</span>
                             <div class="flex space-x-8">
-                                <span class="font-bold">1-5</span>
-                                <span class="font-bold">3-8</span>
+                                <span id="compare-crew-1" class="font-bold">1-5</span>
+                                <span id="compare-crew-2" class="font-bold">3-8</span>
                             </div>
                         </div>
                     </div>
@@ -1060,30 +1134,30 @@
                         <a href="#" class="text-blue-400 hover:underline">Compare More Ships</a>
                     </div>
                 </div>
-                
+
                 <div class="dark-card rounded-xl p-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center">
                         <i class="fas fa-truck-loading text-purple-400 mr-2"></i> Cargo Calculator
                     </h3>
                     <div class="mb-4">
                         <label class="block text-sm text-gray-400 mb-1">Select Ship</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Drake Caterpillar (576 SCU)</option>
-                            <option>MISC Hull C (4,608 SCU)</option>
-                            <option>Freelancer MAX (122 SCU)</option>
+                        <select id="cargo-ship" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="caterpillar">Drake Caterpillar (576 SCU)</option>
+                            <option value="hullc">MISC Hull C (4,608 SCU)</option>
+                            <option value="freelancer">Freelancer MAX (122 SCU)</option>
                         </select>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm text-gray-400 mb-1">Commodity</label>
-                        <select class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Medical Supplies (1 SCU)</option>
-                            <option>Laranite (1 SCU)</option>
-                            <option>Agricium (1 SCU)</option>
+                        <select id="cargo-commodity" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="medical">Medical Supplies (1 SCU)</option>
+                            <option value="laranite">Laranite (1 SCU)</option>
+                            <option value="agricium">Agricium (1 SCU)</option>
                         </select>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm text-gray-400 mb-1">Quantity</label>
-                        <input type="range" min="0" max="576" value="384" class="w-full">
+                        <input type="range" id="cargo-quantity" min="0" max="576" value="384" class="w-full">
                         <div class="flex justify-between text-xs text-gray-400 mt-1">
                             <span>0 SCU</span>
                             <span>288 SCU</span>
@@ -1093,15 +1167,15 @@
                     <div class="pt-3 border-t border-gray-700">
                         <div class="flex justify-between mb-2">
                             <span>Total Capacity:</span>
-                            <span class="font-bold">576 SCU</span>
+                            <span id="total-capacity" class="font-bold">576 SCU</span>
                         </div>
                         <div class="flex justify-between mb-2">
                             <span>Used Capacity:</span>
-                            <span class="font-bold">384 SCU (66%)</span>
+                            <span id="used-capacity" class="font-bold">384 SCU (66%)</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Estimated Value:</span>
-                            <span class="font-bold text-blue-400">42,780 aUEC</span>
+                            <span id="cargo-value" class="font-bold text-blue-400">42,780 aUEC</span>
                         </div>
                     </div>
                 </div>
@@ -1113,18 +1187,18 @@
             <h2 class="text-3xl font-bold mb-8">
                 <span class="border-b-4 border-blue-500 pb-1">API & Data Services</span>
             </h2>
-            
+
             <div class="dark-card rounded-xl p-6 mb-8">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                     <div>
                         <h3 class="text-xl font-bold mb-2">Real-time Commodity Data API</h3>
                         <p class="text-gray-400">Access our comprehensive database of commodity prices, locations, and market trends.</p>
                     </div>
-                    <button class="mt-4 md:mt-0 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition">
+                    <button id="get-api-key" class="mt-4 md:mt-0 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition">
                         <i class="fas fa-key mr-2"></i> Get API Key
                     </button>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="dark-card p-4 rounded-lg">
                         <div class="flex items-center mb-3">
@@ -1193,7 +1267,7 @@
                         </ul>
                     </div>
                 </div>
-                
+
                 <div class="bg-gray-800 rounded-lg overflow-hidden">
                     <div class="flex items-center bg-gray-900 px-4 py-2">
                         <div class="flex space-x-2 mr-4">
@@ -1204,168 +1278,15 @@
                         <div class="text-sm text-gray-400">API Example Request</div>
                     </div>
                     <div class="p-4 overflow-x-auto">
-                        <pre class="text-sm text-green-400">
-<span class="text-gray-400">// Get current commodity prices</span>
-<span class="text-blue-400">GET</span> https://api.sctradenexus.com/v1/commodities/prices
-<span class="text-purple-400">Headers</span>:
-  Authorization: Bearer YOUR_API_KEY
-  Content-Type: application/json
-
-<span class="text-gray-400">// Response</span>
-{
-  "status": "success",
-  "data": [
-    {
-      "id": "medical_supplies",
-      "name": "Medical Supplies",
-      "best_buy": {
-        "location": "Area18",
-        "price": 8.45,
-        "supply": 4200
-      },
-      "best_sell": {
-        "location": "New Babbage",
-        "price": 12.78,
-        "demand": 3200
-      },
-      "profit_per_scu": 4.33,
-      "updated_at": "2023-07-15T14:32:45Z"
-    },
-    ...
-  ]
-}</pre>
+                        <pre class="text-sm text-green-400"> <span class="text-gray-400">// Get current commodity prices</span> <span class="text-blue-400">GET</span> https://api.sctradenexus.com/v1/commodities/prices <span class="text-purple-400">Headers</span>:   Authorization: Bearer YOUR_API_KEY   Content-Type: application/json  <span class="text-gray-400">// Response</span> {   "status": "success",   "data": [     {       "id": "medical_supplies",       "name": "Medical Supplies",       "best_buy": {         "location": "Area18",         "price": 8.45,         "supply": 4200       },       "best_sell": {         "location": "New Babbage",         "price": 12.78,         "demand": 3200       },       "profit_per_scu": 4.33,       "updated_at": "2023-07-15T14:32:45Z"     },     ...   ] }</pre>
                     </div>
                 </div>
-                
+
                 <div class="mt-6 pt-4 border-t border-gray-700">
                     <h4 class="font-bold mb-3">Data Sources & Integration</h4>
                     <div class="flex flex-wrap gap-2">
                         <span class="feature-chip text-xs bg-gray-700 px-3 py-1 rounded-full">Game Data API</span>
                         <span class="feature-chip text-xs bg-gray-700 px-3 py-1 rounded-full">Web Scraping</span>
                         <span class="feature-chip text-xs bg-gray-700 px-3 py-1 rounded-full">Community Contributions</span>
-                        <span class="feature-chip text-xs bg-gray-700 px-3 py-1 rounded-full">JSON Endpoints</span>
-                        <span class="feature-chip text-xs bg-gray-700 px-3 py-1 rounded-full">WebSocket Stream</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="dark-card rounded-xl p-6">
-                    <h3 class="text-xl font-bold mb-4 flex items-center">
-                        <i class="fas fa-plug text-blue-400 mr-2"></i> Third-party Integrations
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center p-3 bg-gray-800 rounded-lg">
-                            <div class="w-12 h-12 rounded-lg bg-blue-900 flex items-center justify-center mr-4">
-                                <i class="fab fa-discord text-blue-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold">Discord Bot</h4>
-                                <p class="text-sm text-gray-400">Get price alerts and route updates directly in Discord</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-gray-800 rounded-lg">
-                            <div class="w-12 h-12 rounded-lg bg-green-900 flex items-center justify-center mr-4">
-                                <i class="fab fa-google text-green-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold">Google Sheets</h4>
-                                <p class="text-sm text-gray-400">Import live data into your spreadsheets</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-gray-800 rounded-lg">
-                            <div class="w-12 h-12 rounded-lg bg-yellow-900 flex items-center justify-center mr-4">
-                                <i class="fab fa-android text-yellow-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold">Mobile App</h4>
-                                <p class="text-sm text-gray-400">Coming soon to iOS and Android</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="dark-card rounded-xl p-6">
-                    <h3 class="text-xl font-bold mb-4 flex items-center">
-                        <i class="fas fa-users text-purple-400 mr-2"></i> Community Data
-                    </h3>
-                    <p class="text-gray-400 mb-4">
-                        Our platform thrives on community contributions. Help improve our database by submitting your findings.
-                    </p>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-map-marker-alt text-red-400 mr-2"></i>
-                                <span>Price Reports</span>
-                            </div>
-                            <button class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">
-                                Submit
-                            </button>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-route text-green-400 mr-2"></i>
-                                <span>Route Suggestions</span>
-                            </div>
-                            <button class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">
-                                Submit
-                            </button>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-mountain text-yellow-400 mr-2"></i>
-                                <span>Mining Locations</span>
-                            </div>
-                            <button class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">
-                                Submit
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-gray-700 text-sm text-gray-400">
-                        All submissions are verified before being added to the live database.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Newsletter -->
-        <section class="bg-gray-800 rounded-2xl p-8 md:p-12 mb-16">
-            <div class="max-w-4xl mx-auto text-center">
-                <h2 class="text-3xl font-bold mb-4">Join Our Trading Community</h2>
-                <p class="text-gray-400 mb-8 max-w-2xl mx-auto">
-                    Subscribe to our newsletter for weekly updates on the most profitable trade routes, commodity price trends, and platform updates.
-                </p>
-                <div class="flex flex-col md:flex-row gap-4 max-w-lg mx-auto">
-                    <input 
-                        type="email" 
-                        placeholder="Your email address" 
-                        class="flex-grow bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition whitespace-nowrap">
-                        Subscribe <i class="fas fa-paper-plane ml-2"></i>
-                    </button>
-                </div>
-                <div class="mt-4 text-sm text-gray-400">
-                    We respect your privacy. Unsubscribe at any time.
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="text-xl font-bold mb-4 flex items-center">
-                        <i class="fas fa-rocket text-blue-400 mr-2"></i> SC Trade Nexus
-                    </h3>
-                    <p class="text-gray-400 mb-4">
-                        The ultimate trading companion for Star Citizen, combining all the best tools in one platform.
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-blue-400 transition">
-                            <i class="fab fa-discord text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-
+                        <span class="feature-chip text-xs bg-gray
 </html>
